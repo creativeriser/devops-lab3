@@ -1,0 +1,32 @@
+---
+# Simple playbook for the two Ansible nodes of Lab 3, Experiment 1.
+# Run it from the controller container with inventory-docker.ini.
+- name: Configure the Ansible target nodes
+  hosts: ansible_nodes
+  become: true
+  gather_facts: true
+  tasks:
+    - name: Show the host name and operating system
+      ansible.builtin.debug:
+        msg: "{{ inventory_hostname }} runs {{ ansible_distribution }} {{ ansible_distribution_version }}"
+
+    - name: Create a lab directory
+      ansible.builtin.file:
+        path: /opt/devops-lab3
+        state: directory
+        mode: "0755"
+
+    - name: Write a marker file
+      ansible.builtin.copy:
+        dest: /opt/devops-lab3/ansible-managed.txt
+        content: "Configured by Ansible on {{ inventory_hostname }}\n"
+        mode: "0644"
+
+    - name: Read the marker file back
+      ansible.builtin.command: cat /opt/devops-lab3/ansible-managed.txt
+      register: marker
+      changed_when: false
+
+    - name: Print the marker file content
+      ansible.builtin.debug:
+        var: marker.stdout
